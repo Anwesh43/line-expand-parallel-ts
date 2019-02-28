@@ -17,12 +17,12 @@ const divideScale : Function = (scale : number, i : number, n : number) : number
     return Math.min(1 / n, maxScale(scale, i, n)) * n
 }
 
-const scaleFactor : Function = (scale : number, i : number, n : number) : number => {
+const scaleFactor : Function = (scale : number) : number => {
     return Math.floor(scale / scDiv)
 }
 
 const mirrorValue : Function = (scale : number, a : number, b : number) : number => {
-    return (1 - scaleFactor()) / a + scaleFactor() / b
+    return (1 - scaleFactor(scale)) / a + scaleFactor(scale) / b
 }
 
 const updateValue : Function = (scale : number, dir : number, a : number, b : number) : number => {
@@ -34,6 +34,7 @@ const drawLEPNode : Function = (context : CanvasRenderingContext2D, i : number, 
     const size : number = gap / sizeFactor
     const sc1 : number = divideScale(scale, 0, 2)
     const sc2 : number = divideScale(scale, 1, 2)
+    console.log(`${sc1} ${sc2}`)
     context.lineWidth = Math.min(w, h) / strokeFactor
     context.lineCap = 'round'
     context.strokeStyle = foreColor
@@ -41,10 +42,10 @@ const drawLEPNode : Function = (context : CanvasRenderingContext2D, i : number, 
     context.translate(w / 2, gap * (i + 1))
     context.rotate(Math.PI/2 * sc2)
     for (var j = 0; j < lines; j++) {
-        const sc : number = divideScale(sc2, j, lines)
+        const sc : number = divideScale(sc1, j, lines)
         context.save()
         const sfj : number = 1 - 2 * j
-        const xSize : number = size / (j + 1)
+        const xSize : number = size / (j * 2 + 2)
         const y : number = size * sfj
         for (var k = 0; k < lines; k++) {
             const sck : number = divideScale(sc, k, lines)
@@ -83,7 +84,9 @@ class LineExpandParallelStage {
 
     handleTap() {
         this.canvas.onmousedown = () => {
-
+            this.renderer.handleTap(() => {
+                this.render()
+            })
         }
     }
 
@@ -102,6 +105,7 @@ class State {
 
     update(cb : Function) {
         this.scale += updateValue(this.scale, this.dir, lines * lines, 1)
+        console.log(this.scale)
         if (Math.abs(this.scale - this.prevScale) > 1) {
             this.scale = this.prevScale + this.dir
             this.dir = 0
