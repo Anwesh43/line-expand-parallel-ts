@@ -202,3 +202,25 @@ class LineExpandParallel {
         this.curr.startUpdating(cb)
     }
 }
+
+class Renderer {
+
+    lep : LineExpandParallel = new LineExpandParallel()
+    animator : Animator = new Animator()
+
+    render(context : CanvasRenderingContext2D) {
+        this.lep.draw(context)
+    }
+
+    handleTap(cb : Function) {
+        this.lep.startUpdating(() => {
+            this.animator.start(() => {
+                cb()
+                this.lep.update(() => {
+                    this.animator.stop()
+                    cb()
+                })
+            })
+        })
+    }
+}
