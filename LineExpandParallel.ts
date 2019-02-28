@@ -50,10 +50,10 @@ const drawLEPNode : Function = (context : CanvasRenderingContext2D, i : number, 
             const sck : number = divideScale(sc, k, lines)
             const skj : number = 1 - 2 * k
             context.save()
-            context.translate(xSize * skj, 0)
+            context.translate(xSize * skj * sck, 0)
             context.beginPath()
             context.moveTo(0, 0)
-            context.lineTo(0, size * sfj * sck)
+            context.lineTo(0, size * sfj)
             context.stroke()
             context.restore()
         }
@@ -132,5 +132,49 @@ class Animator {
             this.animated = false
             clearInterval(this.interval)
         }
+    }
+}
+
+class LEPNode {
+    state : State = new State()
+    next : LEPNode
+    prev : LEPNode
+
+    constructor(private i : number) {
+        this.addNeighbor()
+    }
+
+    addNeighbor() {
+        if (this.i < nodes - 1) {
+            this.next = new LEPNode(this.i + 1)
+            this.next.prev = this
+        }
+    }
+
+    draw(context : CanvasRenderingContext2D) {
+        drawLEPNode(context, this.i, this.state.scale)
+        if (this.next) {
+            this.next.draw(context)
+        }
+    }
+
+    update(cb : Function) {
+        this.state.update(cb)
+    }
+
+    startUpdating(cb : Function) {
+        this.state.startUpdating(cb)
+    }
+
+    getNext(dir : number, cb : Function) : LEPNode {
+        var curr : LEPNode = this.prev
+        if (dir == 1) {
+            curr = this.next
+        }
+        if (curr != null) {
+            return curr
+        }
+        cb()
+        return this
     }
 }
